@@ -27,7 +27,7 @@ router.get('/', async (req, res, next) => {
     logger.info('/ called');
     try {
         //Step 2: task 1 - insert code here
-        const db = connectToDatabase()
+        const db = await connectToDatabase()
 
         //Step 2: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
@@ -49,10 +49,10 @@ router.post('/', upload.single('file'), async(req, res,next) => {
     try {
 
         //Step 3: task 1 - insert code here
-        const db = connectToDatabase()
+        const db = await connectToDatabase()
 
         //Step 3: task 2 - insert code here
-        const collection = db.collection("secondChanceItem")
+        const collection = db.collection("secondChanceItems")
 
         //Step 3: task 3 - insert code here
         let secondChanceItem = req.body;
@@ -67,10 +67,11 @@ router.post('/', upload.single('file'), async(req, res,next) => {
         const date_added = Math.floor(new Date().getTime() / 1000);
         secondChanceItem.date_added = date_added
 
-        // add item  to db
+        // Step 3: Task 6 - add item  to db
         secondChanceItem = await collection.insertOne(secondChanceItem);
 
-        res.status(201).json(secondChanceItem.ops[0]);
+        res.status(201).json({ _id: secondChanceItem.insertedId, ...req.body });
+
     } catch (e) {
         next(e);
     }
@@ -111,9 +112,9 @@ router.put('/:id', async(req, res,next) => {
         const collection = db.collection("secondChanceItems")
 
         //Step 5: task 3 - insert code here
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
 
-        const secondChanceItem = collection.findOne({id});
+        const secondChanceItem = await collection.findOne({id});
         if(!secondChanceItem){
             logger.error('secondChanceItem not found');
             return res.status(404).json({error: "item not found"})
@@ -155,7 +156,9 @@ router.delete('/:id', async(req, res,next) => {
         const collection = db.collection("secondChanceItems");
 
         //Step 6: task 3 - insert code here
+        const id = req.params.id;
         const secondChanceItem = await collection.findOne({ id });
+
         if (!secondChanceItem) {
         logger.error('secondChanceItem not found');
         return res.status(404).json({ error: "secondChanceItem not found" });
